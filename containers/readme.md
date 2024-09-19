@@ -30,3 +30,11 @@ RAM: 1G
 
 i7-7700 | 16GB RAM | GTX 750 TI | 256GB SSD | 450GB HDD
 
+Portainer Agent:
+CPU: 0.256
+RAM: 256M
+
+Tailscale (VPN):
+CPU: 0.5
+RAM: 1G
+
