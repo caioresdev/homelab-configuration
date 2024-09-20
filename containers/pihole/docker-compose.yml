@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "80:80/tcp"  # Porta HTTP do Pi-hole, será gerenciada pelo Traefik para redirecionar via HTTPS
+    environment:
+      TZ: 'America/Chicago'
+      WEBPASSWORD: 'your_secure_password'
+    volumes:
+      - './etc-pihole:/etc/pihole'
+      - './etc-dnsmasq.d:/etc/dnsmasq.d'
+    cap_add:
+      - NET_ADMIN  # Necessário para DHCP, se usar
+    deploy:
+      resources:
+        limits:
+          cpus: '0.256'
+          memory: '512M'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.homelab`)"
+      - "traefik.http.routers.pihole.entrypoints=web"
+      - "traefik.http.routers.pihole.middlewares=https-redirect" # Redirecionar HTTP para HTTPS
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.pihole-secure.rule=Host(`pihole.homelab`)"
+      - "traefik.http.routers.pihole-secure.entrypoints=websecure"
+      - "traefik.http.routers.pihole-secure.tls.certresolver=myresolver"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80" # Porta interna do Pi-hole
+    restart: unless-stopped
+
+networks:
+  default:
+    external:
+      name: homelab

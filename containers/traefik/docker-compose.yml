@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    restart: always
+    command:
+      - "--api.insecure=true" # Painel de controle do Traefik (pode ser removido em produção)
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"  # Gerenciamento de certificados TLS
+      - "--certificatesresolvers.myresolver.acme.email=caioresdev@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"   # Porta HTTP
+      - "443:443" # Porta HTTPS
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+    networks:
+      - webproxy
+    labels:
+      - "traefik.http.routers.api.rule=Host(`traefik.homelab`)"
+      - "traefik.http.routers.api.service=api@internal"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver" # Resolver ACME para HTTPS
+
+networks:
+  webproxy:
+    external: true
