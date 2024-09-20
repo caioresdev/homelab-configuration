@@ -1,0 +1,22 @@
+services:
+  redis:
+    container_name: redis
+    image: redis:6.2-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: "0.256"
+          memory: "512M"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+    volumes:
+      - /srv/redis/data:/data
+    ports:
+      - "6379:6379"
+    restart: always
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
